@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>Mexico City Live</title>
+
+    <style>
+
+        body {
+
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+
+            color: white;
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            height: 100vh;
+
+            margin: 0;
+
+        }
+
+
+
+        .app-container {
+
+            background: rgba(255, 255, 255, 0.1);
+
+            backdrop-filter: blur(10px);
+
+            padding: 40px;
+
+            border-radius: 20px;
+
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+
+            text-align: center;
+
+            width: 300px;
+
+            border: 1px solid rgba(255, 255, 255, 0.18);
+
+        }
+
+
+
+        h1 {
+
+            font-size: 24px;
+
+            margin-bottom: 5px;
+
+            font-weight: 300;
+
+            text-transform: uppercase;
+
+            letter-spacing: 2px;
+
+        }
+
+
+
+        .time {
+
+            font-size: 60px;
+
+            font-weight: bold;
+
+            margin: 20px 0;
+
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+
+        }
+
+
+
+        .date {
+
+            font-size: 18px;
+
+            opacity: 0.8;
+
+            margin-bottom: 30px;
+
+        }
+
+
+
+        .weather-container {
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            gap: 15px;
+
+            font-size: 28px;
+
+            background: rgba(0,0,0,0.2);
+
+            padding: 15px;
+
+            border-radius: 15px;
+
+        }
+
+
+
+        .temp {
+
+            font-weight: 600;
+
+        }
+
+
+
+        .refresh-note {
+
+            margin-top: 15px;
+
+            font-size: 10px;
+
+            opacity: 0.5;
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+
+
+    <div class="app-container">
+
+        <h1>Mexico City</h1>
+
+        <div class="date" id="dateDisplay">Loading date...</div>
+
+        <div class="time" id="timeDisplay">--:--</div>
+
+        
+
+        <div class="weather-container">
+
+            <span id="weatherIcon">🌤️</span>
+
+            <span class="temp" id="tempDisplay">--°C</span>
+
+        </div>
+
+        <div class="refresh-note">Weather updates every 15 mins</div>
+
+    </div>
+
+
+
+    <script>
+
+        // 1. UPDATE TIME
+
+        function updateTime() {
+
+            const now = new Date();
+
+            
+
+            // Force time to Mexico City timezone
+
+            const timeOptions = { 
+
+                timeZone: 'America/Mexico_City', 
+
+                hour: '2-digit', 
+
+                minute: '2-digit', 
+
+                second: '2-digit',
+
+                hour12: false 
+
+            };
+
+            
+
+            const dateOptions = {
+
+                timeZone: 'America/Mexico_City',
+
+                weekday: 'long',
+
+                year: 'numeric',
+
+                month: 'long',
+
+                day: 'numeric'
+
+            };
+
+
+
+            const timeString = new Intl.DateTimeFormat('en-US', timeOptions).format(now);
+
+            const dateString = new Intl.DateTimeFormat('en-US', dateOptions).format(now);
+
+
+
+            document.getElementById('timeDisplay').innerText = timeString;
+
+            document.getElementById('dateDisplay').innerText = dateString;
+
+        }
+
+
+
+        // 2. UPDATE WEATHER (Using Open-Meteo API - Free, No Key Required)
+
+        async function fetchWeather() {
+
+            const lat = 19.4326;
+
+            const lon = -99.1332;
+
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
+
+
+
+            try {
+
+                const response = await fetch(url);
+
+                const data = await response.json();
+
+                
+
+                const temp = Math.round(data.current_weather.temperature);
+
+                const code = data.current_weather.weathercode;
+
+                
+
+                // Simple icon mapping based on WMO Weather Codes
+
+                let icon = '☀️';
+
+                if (code > 0 && code <= 3) icon = '⛅';
+
+                if (code >= 45 && code <= 48) icon = '🌫️';
+
+                if (code >= 51 && code <= 67) icon = '🌧️';
+
+                if (code >= 80 && code <= 99) icon = '⛈️';
+
+
+
+                document.getElementById('tempDisplay').innerText = `${temp}°C`;
+
+                document.getElementById('weatherIcon').innerText = icon;
+
+                
+
+            } catch (error) {
+
+                console.error("Error fetching weather:", error);
+
+                document.getElementById('tempDisplay').innerText = "--";
+
+            }
+
+        }
+
+
+
+        // Initialize
+
+        setInterval(updateTime, 1000); // Update time every second
+
+        fetchWeather(); // Fetch weather immediately
+
+        setInterval(fetchWeather, 900000); // Fetch weather every 15 minutes
+
+        updateTime();
+
+    </script>
+
+</body>
+
+</html>
